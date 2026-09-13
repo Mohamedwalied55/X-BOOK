@@ -30,7 +30,6 @@ function isValidEgyptianPhone(phone) {
   return /^01[0125]\d{8}$/.test(phone);
 }
 
-// دالة توثيق هويّة الطالب
 function userAuth(req, res, next) {
   const h = req.headers.authorization || '';
   if (!h.startsWith('Bearer ')) return res.status(401).json({ error: 'يرجى تسجيل الدخول أولاً' });
@@ -65,7 +64,6 @@ async function init() {
     CREATE TABLE IF NOT EXISTS site_media(key TEXT PRIMARY KEY,data BYTEA NOT NULL,mime_type TEXT NOT NULL,updated_at TIMESTAMPTZ DEFAULT now());
   `);
 
-  // إضافة العمود التلقائي لمنع خطأ user_id
   await db(`
     DO $$ 
     BEGIN 
@@ -79,13 +77,8 @@ async function init() {
   await db('INSERT INTO admins(email,password_hash) VALUES($1,$2) ON CONFLICT(email) DO NOTHING', [email, await bcrypt.hash(pass, 10)]);
 }
 
-  const email = process.env.ADMIN_EMAIL || 'admin@xbook.local', pass = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
-  await db('INSERT INTO admins(email,password_hash) VALUES($1,$2) ON CONFLICT(email) DO NOTHING', [email, await bcrypt.hash(pass, 10)]);
-}
-
 // ------------------- مسارات الطلاب (User Auth API) -------------------
 
-// إنشاء حساب طالب جديد
 app.post('/api/user/register', async (req, res) => {
   try {
     const { name, phone, password, governorate, address } = req.body;
@@ -106,7 +99,6 @@ app.post('/api/user/register', async (req, res) => {
   }
 });
 
-// تسجيل دخول الطالب
 app.post('/api/user/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -122,7 +114,6 @@ app.post('/api/user/login', async (req, res) => {
   }
 });
 
-// جلب طلبات الطالب الحالية
 app.get('/api/user/orders', userAuth, async (req, res) => {
   try {
     const o = await db(`
@@ -136,7 +127,7 @@ app.get('/api/user/orders', userAuth, async (req, res) => {
   }
 });
 
-// ------------------- إنشاء الطلب مع الربط بالحساب -------------------
+// ------------------- إنشاء الطلب -------------------
 
 app.post('/api/orders', async (req, res) => {
   const { customer_name, phone, governorate, address, notes, items, user_id } = req.body;
@@ -174,7 +165,6 @@ app.post('/api/orders', async (req, res) => {
     }
     await client.query('COMMIT');
 
-    // تجهيز رابط الواتساب الجاهز لإرسال إشعار فوري
     const waPhone = '2' + phone;
     const waText = encodeURIComponent(`أهلاً ${customer_name}👋\nتم تسليم طلبك بنجاح في منصة XBOOK!\nرقم المهمة: #X-${o.rows[0].id}\nالإجمالي: ${total} ج.م\nحالة الطلب الحالية: جديد.`);
     const waLink = `https://wa.me/${waPhone}?text=${waText}`;
@@ -188,7 +178,8 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// باقي مسارات المسؤول الأدمن...
+// ------------------- المسارات العامة واللوحة -------------------
+
 app.get('/api/public', async (req, res) => {
   try {
     const [b, t, s, m] = await Promise.all([
@@ -229,7 +220,6 @@ app.get('/api/admin/data', adminAuth, async (req, res) => {
   }
 });
 
-// تحديث حالة الطلب وإرجاع رابط إرسال الواتساب التلقائي للأدمن
 app.put('/api/admin/orders/:id', adminAuth, async (req, res) => {
   const allowed = ['جديد', 'قيد التجهيز', 'تم الشحن', 'مكتمل', 'ملغي'];
   const { status } = req.body;
