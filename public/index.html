@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="XBOOK — متجر كتب الثانوية العامة بطابع الملفات السرية">
+<title>XBOOK — Books Are Your Mission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#home"><span class="brandMark">X</span><span><b>XBOOK</b><small>BOOKS ARE YOUR MISSION</small></span></a>
+  <div class="topSearch"><span>⌕</span><input id="search" placeholder="ابحث عن كتاب، مدرس، أو مادة..." autocomplete="off"></div>
+  <nav><a class="active" href="#home">الرئيسية</a><a href="#books">الكتب</a><a href="#teachers">المدرسين</a><a href="#categories">التصنيفات</a><a href="#about">عن XBOOK</a></nav>
+  <button class="iconBtn" id="theme" title="الوضع الليلي">☾</button>
+  <button class="cartIcon" id="cartBtn" title="السلة">🛒<b id="cartCount">0</b></button>
+</header>
+<main id="home">
+<section class="hero">
+  <div class="heroCopy">
+    <span class="classified" id="heroBadge">CLASSIFIED // XBOOK</span>
+    <h1 id="heroTitle">رحلتك نحو<br><em>الثانوية العامة</em></h1>
+    <p id="heroSubtitle">كتبك .. مع أفضل الشروحات من أقوى المدرسين</p>
+    <div class="heroActions"><a class="btn primary" href="#books">ابدأ البحث <span>⌕</span></a><a class="btn outline" href="#books">استكشف الكتب <span>▣</span></a></div>
+    <div class="missionLine"><b>CASE #X-2026</b><span>MISSION: ACHIEVE YOUR GOAL</span></div>
+  </div>
+  <div class="heroArt" id="heroArt"></div>
+</section>
+<section id="categories" class="section categorySection">
+  <div class="categoryCards">
+    <button class="categoryCard" data-grade=""><span class="catIcon">☆</span><b>الكتب المميزة</b><small>أفضل الكتب المختارة</small></button>
+    <button class="categoryCard" data-grade="الثالث الثانوي"><span class="catIcon">▰</span><b>تالتة ثانوي</b><small>الصف الثالث الثانوي</small></button>
+    <button class="categoryCard" data-grade="الثاني الثانوي"><span class="catIcon">▰</span><b>تانية ثانوي</b><small>الصف الثاني الثانوي</small></button>
+    <button class="categoryCard" data-grade="الأول الثانوي"><span class="catIcon">▰</span><b>أولى ثانوي</b><small>الصف الأول الثانوي</small></button>
+    <button class="categoryCard" data-grade=""><span class="catIcon">⌕</span><b>كل المراحل</b><small>تصفح جميع الكتب</small></button>
+  </div>
+</section>
+<section id="books" class="booksSection">
+  <div class="booksShell">
+    <aside class="filterPanel">
+      <div class="filterTitle">ابحث عن كتابك</div>
+      <div class="filterSearch"><span>⌕</span><input id="sideSearch" placeholder="ابحث باسم الكتاب أو المدرس..."></div>
+      <label>الصف<select id="grade"><option value="">جميع الصفوف</option><option>الأول الثانوي</option><option>الثاني الثانوي</option><option>الثالث الثانوي</option></select></label>
+      <label>المادة<select id="subject"><option value="">جميع المواد</option></select></label>
+      <label>المدرس<select id="teacher"><option value="">جميع المدرسين</option></select></label>
+      <label class="check"><input id="availableOnly" type="checkbox"> متوفر فقط</label>
+      <button class="btn primary full" id="applyFilters">تطبيق الفلاتر <span>⚑</span></button>
+      <button class="clearFilters" id="clearFilters">مسح الفلاتر</button>
+    </aside>
+    <div class="booksMain">
+      <div class="sectionHead darkHead"><div><span class="eyebrow">DATABASE / BOOKS</span><h2>الكتب الأكثر طلباً <span>♨</span></h2><p>الأكثر مبيعاً بين طلاب الثانوية العامة</p></div><button class="viewAll" id="viewAll">عرض الكل ←</button></div>
+      <div id="grid" class="bookGrid"></div>
+      <div id="empty" class="emptyState" hidden>لا توجد كتب مطابقة للفلاتر الحالية.</div>
+    </div>
+  </div>
+</section>
+<section class="trustBar"><div><b>☆</b><strong>تجربة سهلة</strong><small>واجهة بسيطة وسريعة</small></div><div><b>◉</b><strong>دعم فني</strong><small>متاح دائماً لمساعدتك</small></div><div><b>▣</b><strong>توصيل سريع</strong><small>لجميع المحافظات</small></div><div><b>✓</b><strong>جودة مضمونة</strong><small>كتب أصلية ومراجعة دقيقة</small></div></section>
+<section id="teachers" class="section teachersSection"><div class="sectionHead"><div><span class="eyebrow">CONTACTS / TEACHERS</span><h2>المدرسين</h2></div><p>تعرف على المدرسين واكتشف ملفاتهم التعليمية.</p></div><div id="teachersGrid" class="teachersGrid"></div></section>
+<section id="about" class="aboutSection section"><div><span class="eyebrow">INTEL / XBOOK</span><h2>كل كتاب خطوة أقرب لهدفك.</h2><p id="aboutText">XBOOK منصة تعليمية منظمة تجمع كتب الثانوية العامة في مكان واحد، مع تجربة تصفح وطلب سهلة وبروح الملفات السرية.</p></div><div class="aboutCards"><article><b>01</b><h3>اختار ملفك</h3><p>حدد الصف والمادة والمدرس.</p></article><article><b>02</b><h3>أضف مهمتك</h3><p>اجمع الكتب التي تحتاجها في السلة.</p></article><article><b>03</b><h3>أرسل الطلب</h3><p>بدون دفع إلكتروني؛ نتواصل معك للتأكيد.</p></article></div></section>
+<section class="contactSection"><div><span class="eyebrow">OPEN CHANNEL</span><h2>تواصل مع XBOOK</h2><p>عندك سؤال عن كتاب أو طلب؟ تواصل معنا مباشرة.</p></div><div class="waLinks" id="waLinks"></div></section>
+</main>
+<footer><div class="brand"><span class="brandMark">X</span><span><b>XBOOK</b><small>BOOKS ARE YOUR MISSION</small></span></div><div class="footerLinks"><a href="#home">الرئيسية</a><a href="#books">الكتب</a><a href="#teachers">المدرسين</a><a href="#categories">التصنيفات</a><a href="#about">عن XBOOK</a><a href="/admin">CONTROL ROOM</a></div><div class="copyright">© 2026 XBOOK<br><small>MADE WITH ♥ FOR STUDENTS</small></div></footer>
+<button class="floatingWa" id="floatingWa">◉</button>
+<div class="drawer" id="drawer"><div class="overlay" id="overlay"></div><aside class="cartDrawer"><button class="close" id="closeCart">×</button><span class="eyebrow">MISSION CART</span><h2>ملف المهمة</h2><div id="cart"></div><div class="cartTotal"><span>الإجمالي</span><b><span id="total">0</span> ج.م</b></div><button class="btn primary full" id="checkoutBtn">إرسال الطلب</button></aside></div>
+<div class="modal" id="orderModal"><div class="modalBox"><button class="close" id="closeModal">×</button><span class="eyebrow">ORDER FORM / ENCRYPTED</span><h2>بيانات المهمة</h2><p class="muted">اكتب بيانات الاستلام وسنتواصل معك لتأكيد الطلب.</p><form id="orderForm"><input name="customer_name" placeholder="الاسم بالكامل" required><input name="phone" placeholder="رقم الهاتف / واتساب" required><select name="governorate" required><option value="">اختر المحافظة</option><option>الغربية</option><option>الدقهلية</option><option>القاهرة</option><option>الجيزة</option><option>الإسكندرية</option><option>الشرقية</option><option>البحيرة</option><option>أخرى</option></select><textarea name="address" placeholder="العنوان بالتفصيل" required></textarea><textarea name="notes" placeholder="ملاحظات (اختياري)"></textarea><button class="btn primary full">تأكيد إرسال الطلب</button></form></div></div>
+<div class="toast" id="toast"></div><script src="/script.js"></script>
+</body></html>
