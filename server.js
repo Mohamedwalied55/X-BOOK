@@ -59,11 +59,25 @@ async function init() {
     CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT NOT NULL, phone TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, governorate TEXT, address TEXT, created_at TIMESTAMPTZ DEFAULT now());
     CREATE TABLE IF NOT EXISTS teachers(id SERIAL PRIMARY KEY,name TEXT NOT NULL,subject TEXT DEFAULT '',bio TEXT DEFAULT '',image_data BYTEA,image_type TEXT,created_at TIMESTAMPTZ DEFAULT now());
     CREATE TABLE IF NOT EXISTS books(id SERIAL PRIMARY KEY,title TEXT NOT NULL,teacher_id INT REFERENCES teachers(id) ON DELETE SET NULL,subject TEXT NOT NULL,grade TEXT NOT NULL,price NUMERIC(10,2) DEFAULT 0,available BOOLEAN DEFAULT true,featured BOOLEAN DEFAULT false,description TEXT DEFAULT '',cover_data BYTEA,cover_type TEXT,created_at TIMESTAMPTZ DEFAULT now());
-    CREATE TABLE IF NOT EXISTS orders(id SERIAL PRIMARY KEY, user_id INT REFERENCES users(id) ON DELETE SET NULL, customer_name TEXT NOT NULL,phone TEXT NOT NULL,governorate TEXT NOT NULL,address TEXT NOT NULL,notes TEXT DEFAULT '',status TEXT DEFAULT 'جديد',total NUMERIC(10,2) DEFAULT 0,created_at TIMESTAMPTZ DEFAULT now());
+    CREATE TABLE IF NOT EXISTS orders(id SERIAL PRIMARY KEY, customer_name TEXT NOT NULL,phone TEXT NOT NULL,governorate TEXT NOT NULL,address TEXT NOT NULL,notes TEXT DEFAULT '',status TEXT DEFAULT 'جديد',total NUMERIC(10,2) DEFAULT 0,created_at TIMESTAMPTZ DEFAULT now());
     CREATE TABLE IF NOT EXISTS order_items(id SERIAL PRIMARY KEY,order_id INT REFERENCES orders(id) ON DELETE CASCADE,book_id INT REFERENCES books(id) ON DELETE SET NULL,title TEXT NOT NULL,price NUMERIC(10,2) NOT NULL,qty INT NOT NULL DEFAULT 1);
     CREATE TABLE IF NOT EXISTS site_settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS site_media(key TEXT PRIMARY KEY,data BYTEA NOT NULL,mime_type TEXT NOT NULL,updated_at TIMESTAMPTZ DEFAULT now());
   `);
+
+  // إضافة العمود التلقائي لمنع خطأ user_id
+  await db(`
+    DO $$ 
+    BEGIN 
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='user_id') THEN
+        ALTER TABLE orders ADD COLUMN user_id INT REFERENCES users(id) ON DELETE SET NULL;
+      END IF;
+    END $$;
+  `);
+
+  const email = process.env.ADMIN_EMAIL || 'admin@xbook.local', pass = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
+  await db('INSERT INTO admins(email,password_hash) VALUES($1,$2) ON CONFLICT(email) DO NOTHING', [email, await bcrypt.hash(pass, 10)]);
+}
 
   const email = process.env.ADMIN_EMAIL || 'admin@xbook.local', pass = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
   await db('INSERT INTO admins(email,password_hash) VALUES($1,$2) ON CONFLICT(email) DO NOTHING', [email, await bcrypt.hash(pass, 10)]);
