@@ -4,101 +4,145 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>لوحة التحكم | XBOOK CONTROL ROOM</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
   <style>
     :root {
-      --bg: #0b0f17;
-      --card: #131b2a;
-      --border: #1e293b;
+      --bg: #06110d;
+      --card: #0a1c15;
+      --border: #274b3d;
       --primary: #10b981;
       --primary-hover: #059669;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --text: #effff4;
+      --text-muted: #9bb4a8;
       --danger: #ef4444;
       --wa-color: #25d366;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1300px; margin: 0 auto; }
     header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
-    h1 { font-size: 24px; color: var(--primary); font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    h1 { font-size: 22px; color: var(--primary); font-weight: 800; font-family: 'IBM Plex Mono', monospace; }
     
+    .statsGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+    .statCard { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+    .statCard span { font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; display: block; }
+    .statCard b { font-size: 28px; color: var(--primary); font-family: 'IBM Plex Mono', monospace; display: block; margin-top: 5px; }
+
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
     h2 { font-size: 18px; margin-bottom: 15px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: right; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-    th { color: var(--text-muted); font-weight: 500; }
+    .tableWrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 900px; }
+    th, td { text-align: right; padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
     
-    .btn { background: var(--primary); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-block; }
+    .btn { background: var(--primary); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
     .btn:hover { background: var(--primary-hover); }
-    .btn-wa { background: var(--wa-color); color: #fff; }
+    .btn-wa { background: var(--wa-color); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 5px; text-decoration: none; display: inline-block; }
     .btn-wa:hover { opacity: 0.9; }
     
-    select, input, textarea { width: 100%; background: #0b0f17; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
-    .status-select { width: auto; padding: 4px 8px; font-size: 13px; }
+    select, input, textarea { width: 100%; background: #071710; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+    .status-select { width: auto; padding: 6px 10px; font-size: 12px; background: #071710; color: #fff; border-radius: 5px; border: 1px solid var(--border); }
     .login-box { max-width: 400px; margin: 80px auto; text-align: center; }
+    .itemsList { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: #000; padding: 12px 20px; border-radius: 8px; font-weight: bold; display: none; z-index: 999; }
+    .toast.show { display: block; }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- شاشة تسجيل الدخول -->
     <div id="loginView" class="card login-box">
-      <h1>XBOOK ADMIN</h1>
-      <p style="margin-bottom: 20px; color: var(--text-muted);">تسجيل الدخول للوحة التحكم</p>
+      <h1>XBOOK CONTROL ROOM</h1>
+      <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px;">تسجيل الدخول للوحة التحكم المصرح بها</p>
       <input type="email" id="email" placeholder="البريد الإلكتروني" />
       <input type="password" id="password" placeholder="كلمة المرور" />
-      <button class="btn" style="width: 100%; margin-top: 10px;" onclick="login()">تسجيل الدخول</button>
+      <button class="btn" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="login()">تسجيل الدخول</button>
     </div>
 
+    <!-- واجهة لوحة التحكم الرئيسية -->
     <div id="dashboardView" style="display: none;">
       <header>
-        <h1>XBOOK CONTROL ROOM</h1>
-        <button class="btn" style="background: var(--danger); color: #fff;" onclick="logout()">تسجيل خروج</button>
+        <div>
+          <h1>XBOOK CONTROL ROOM</h1>
+          <small style="color: var(--text-muted); font-size: 11px;">LIVE DATABASE SYSTEM</small>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="/" class="btn" style="background: transparent; color: var(--text); border: 1px solid var(--border);">الموقع الرئيسي ↗</a>
+          <button class="btn" style="background: var(--danger); color: #fff;" onclick="logout()">تسجيل خروج</button>
+        </div>
       </header>
 
+      <!-- الإحصائيات السريعة -->
+      <div class="statsGrid">
+        <div class="statCard"><span>TOTAL ORDERS</span><b id="statOrders">0</b></div>
+        <div class="statCard"><span>PENDING ORDERS</span><b id="statPending">0</b></div>
+        <div class="statCard"><span>TOTAL BOOKS</span><b id="statBooks">0</b></div>
+        <div class="statCard"><span>TEACHERS</span><b id="statTeachers">0</b></div>
+      </div>
+
+      <!-- جدول الطلبات -->
       <div class="card">
-        <h2>الطلبات الواردة (Orders)</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>المهمة</th>
-              <th>العميل</th>
-              <th>الهاتف</th>
-              <th>المحافظة والعنوان</th>
-              <th>الإجمالي</th>
-              <th>الحالة</th>
-              <th>تحديث وإشعار الواتساب</th>
-            </tr>
-          </thead>
-          <tbody id="ordersTable"></tbody>
-        </table>
+        <h2>الطلبات الواردة (Missions / Orders)</h2>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>المهمة</th>
+                <th>العميل</th>
+                <th>الهاتف</th>
+                <th>المحافظة والعنوان</th>
+                <th>الكتب المطلوبة</th>
+                <th>الإجمالي</th>
+                <th>الحالة</th>
+                <th>إجراء وإشعار الواتساب</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
+
   <script>
-    let token = localStorage.getItem('adminToken');
+    let token = localStorage.getItem('xbookToken') || localStorage.getItem('adminToken');
     if (token) showDashboard();
 
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
     async function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('adminToken', data.token);
-        token = data.token;
-        showDashboard();
-      } else {
-        alert(data.error || 'خطأ في الدخول');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('xbookToken', data.token);
+          token = data.token;
+          showDashboard();
+        } else {
+          alert(data.error || 'خطأ في بيانات الدخول');
+        }
+      } catch (err) {
+        alert('تعذر الاتصال بالسيرفر');
       }
     }
 
     function logout() {
+      localStorage.removeItem('xbookToken');
       localStorage.removeItem('adminToken');
       location.reload();
     }
@@ -110,51 +154,79 @@
     }
 
     async function loadData() {
-      const res = await fetch('/api/admin/data', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      if (!res.ok) return logout();
-      const data = await res.json();
+      try {
+        const res = await fetch('/api/admin/data', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return logout();
+        const data = await res.json();
 
-      const tbody = document.getElementById('ordersTable');
-      tbody.innerHTML = data.orders.map(o => `
-        <tr>
-          <td><b>#X-${o.id}</b></td>
-          <td>${o.customer_name}</td>
-          <td>${o.phone}</td>
-          <td>${o.governorate} - ${o.address}</td>
-          <td><b>${o.total} ج.م</b></td>
-          <td>
-            <select class="status-select" id="status-${o.id}">
-              ${['جديد', 'قيد التجهيز', 'تم الشحن', 'مكتمل', 'ملغي'].map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </td>
-          <td>
-            <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="updateStatus(${o.id})">حفظ والحصول على رابط الواتساب</button>
-            <span id="wa-container-${o.id}"></span>
-          </td>
-        </tr>
-      `).join('');
+        // تحديث الإحصائيات
+        document.getElementById('statOrders').textContent = data.orders?.length || 0;
+        document.getElementById('statPending').textContent = data.orders?.filter(o => ['جديد', 'قيد التجهيز', 'تم الشحن'].includes(o.status)).length || 0;
+        document.getElementById('statBooks').textContent = data.books?.length || 0;
+        document.getElementById('statTeachers').textContent = data.teachers?.length || 0;
+
+        const tbody = document.getElementById('ordersTable');
+        if (!data.orders || data.orders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">لا توجد طلبات واردة حالياً.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.orders.map(o => `
+          <tr>
+            <td><b>#X-${o.id}</b></td>
+            <td><b>${esc(o.customer_name)}</b></td>
+            <td><a href="tel:${o.phone}" style="color: var(--primary); text-decoration: none;">${esc(o.phone)}</a></td>
+            <td>${esc(o.governorate)} - ${esc(o.address)}</td>
+            <td class="itemsList">${(o.items || []).map(i => `${esc(i.title)} × ${i.qty}`).join('<br>')}</td>
+            <td><b>${Number(o.total || 0).toLocaleString('ar-EG')} ج.م</b></td>
+            <td>
+              <select class="status-select" id="status-${o.id}">
+                ${['جديد', 'قيد التجهيز', 'تم الشحن', 'مكتمل', 'ملغي'].map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <div style="display: flex; gap: 5px; align-items: center;">
+                <button class="btn" style="padding: 5px 10px; font-size: 11px;" onclick="updateStatus(${o.id})">حفظ والحصول على الواتساب</button>
+                <span id="wa-container-${o.id}"></span>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('تعذر تحميل البيانات');
+      }
     }
 
     async function updateStatus(id) {
       const status = document.getElementById(`status-${id}`).value;
-      const res = await fetch('/api/admin/orders/' + id, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ status })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const waBtn = `<a href="${data.whatsapp_link}" target="_blank" class="btn btn-wa" style="padding: 4px 10px; font-size: 12px; margin-right: 5px;">📱 إرسال للواتساب</a>`;
-        document.getElementById(`wa-container-${id}`).innerHTML = waBtn;
-        alert('تم تحديث حالة الطلب بنجاح! يمكنك الآن الضغط على زر الواتساب لإشعاره.');
-      } else {
-        alert(data.error);
+      try {
+        const res = await fetch('/api/admin/orders/' + id, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('تم تحديث حالة الطلب بنجاح');
+          if (data.whatsapp_link) {
+            const waBtn = `<a href="${data.whatsapp_link}" target="_blank" class="btn-wa">📱 إرسال للواتساب</a>`;
+            document.getElementById(`wa-container-${id}`).innerHTML = waBtn;
+          }
+        } else {
+          alert(data.error || 'حدث خطأ أثناء التحديث');
+        }
+      } catch (err) {
+        alert('تعذر الاتصال بالسيرفر');
       }
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
     }
   </script>
 </body>
