@@ -52,7 +52,7 @@ $('#orderForm').onsubmit=async e=>{
 };
 $('#theme').onclick=()=>{document.body.classList.toggle('dark');localStorage.xbookDark=document.body.classList.contains('dark')?'1':'0'};if(localStorage.xbookDark==='1')document.body.classList.add('dark');loadCart();load().catch(e=>toast(e.message));
 
-// --- إدارة نافذة تسجيل الدخول وحساب الطالب ---
+// --- إدارة حساب الطالب ---
 let isRegisterMode = false;
 
 function checkUserState() {
@@ -62,7 +62,7 @@ function checkUserState() {
     btn.textContent = `حسابي (${user.name.split(' ')[0]})`;
     btn.onclick = () => {
       if (confirm(`مرحباً ${user.name}\nهل ترغب في تسجيل الخروج؟`)) {
-        localStorage.removeItem('xbookToken');
+        localStorage.removeItem('xbookUserToken');
         localStorage.removeItem('xbookUser');
         location.reload();
       }
@@ -72,12 +72,12 @@ function checkUserState() {
 
 function openUserAuthModal() {
   const modal = document.getElementById('userAuthModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) modal.classList.add('open');
 }
 
 function closeUserAuthModal() {
   const modal = document.getElementById('userAuthModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) modal.classList.remove('open');
 }
 
 function toggleAuthMode(event) {
@@ -138,7 +138,7 @@ async function handleUserAuth() {
     if (res.ok) {
       toast(isRegisterMode ? 'تم إنشاء الحساب بنجاح!' : 'تم تسجيل الدخول بنجاح!');
       if (data.token) {
-        localStorage.setItem('xbookToken', data.token);
+        localStorage.setItem('xbookUserToken', data.token);
         localStorage.setItem('xbookUser', JSON.stringify(data.user));
       }
       closeUserAuthModal();
