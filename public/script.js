@@ -20,3 +20,96 @@ function renderWhatsApp(){const nums=[state.settings.whatsapp1,state.settings.wh
 function syncFilters(){state.filters.q=$('#search').value||$('#sideSearch').value;state.filters.grade=$('#grade').value;state.filters.subject=$('#subject').value;state.filters.teacher=$('#teacher').value;state.filters.available=$('#availableOnly').checked;$('#sideSearch').value=$('#search').value;renderBooks()}
 $('#search').addEventListener('input',()=>{state.filters.q=$('#search').value;$('#sideSearch').value=$('#search').value;renderBooks()});$('#sideSearch').addEventListener('input',()=>{state.filters.q=$('#sideSearch').value;$('#search').value=$('#sideSearch').value;renderBooks()});['grade','subject','teacher','availableOnly'].forEach(id=>$('#'+id).addEventListener('change',syncFilters));$('#applyFilters').onclick=syncFilters;$('#clearFilters').onclick=()=>{$('#search').value='';$('#sideSearch').value='';$('#grade').value='';$('#subject').value='';$('#teacher').value='';$('#availableOnly').checked=false;syncFilters()};$('#viewAll').onclick=()=>{$('#clearFilters').click()};$$('.categoryCard').forEach(c=>c.onclick=()=>{$('#grade').value=c.dataset.grade;state.filters.grade=c.dataset.grade;document.querySelector('#books').scrollIntoView({behavior:'smooth'});renderBooks()});$('#cartBtn').onclick=openCart;$('#overlay').onclick=closeCart;$('#closeCart').onclick=closeCart;$('#checkoutBtn').onclick=()=>{if(!state.cart.length)return toast('أضف كتاباً إلى السلة أولاً');closeCart();$('#orderModal').classList.add('open')};$('#closeModal').onclick=()=>$('#orderModal').classList.remove('open');$('#orderModal').onclick=e=>{if(e.target.id==='orderModal')$('#orderModal').classList.remove('open')};$('#orderForm').onsubmit=async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(e.target));body.items=state.cart;try{const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error);state.cart=[];saveCart();renderCart();e.target.reset();$('#orderModal').classList.remove('open');toast('تم إرسال الطلب رقم #'+d.order_id)}catch(err){toast(err.message)}};
 $('#theme').onclick=()=>{document.body.classList.toggle('dark');localStorage.xbookDark=document.body.classList.contains('dark')?'1':'0'};if(localStorage.xbookDark==='1')document.body.classList.add('dark');loadCart();load().catch(e=>toast(e.message));
+// --- إدارة نافذة تسجيل الدخول وحساب الطالب ---
+let isRegisterMode = false;
+
+function openUserAuthModal() {
+  const modal = document.getElementById('userAuthModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeUserAuthModal() {
+  const modal = document.getElementById('userAuthModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function toggleAuthMode(event) {
+  if (event) event.preventDefault();
+  isRegisterMode = !isRegisterMode;
+
+  const title = document.getElementById('authTitle');
+  const regFields = document.getElementById('registerFields');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const toggleLink = document.getElementById('toggleAuthMode');
+
+  if (isRegisterMode) {
+    title.textContent = 'إنشاء حساب جديد';
+    regFields.style.display = 'block';
+    submitBtn.textContent = 'إنشاء الحساب';
+    toggleLink.textContent = 'لديك حساب بالفعل؟ تسجيل الدخول';
+  } else {
+    title.textContent = 'تسجيل الدخول';
+    regFields.style.display = 'none';
+    submitBtn.textContent = 'دخول';
+    toggleLink.textContent = 'ليس لديك حساب؟ أنشئ حساب جديد';
+  }
+}
+
+async function handleUserAuth() {
+  const phone = document.getElementById('authPhone')?.value.trim();
+  const password = document.getElementById('authPass')?.value.trim();
+
+  if (!phone || !password) {
+    alert('يرجى ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  if (isRegisterMode) {
+    const name = document.getElementById('regName')?.value.trim();
+    const gov = document.getElementById('regGov')?.value.trim();
+    const address = document.getElementById('regAddress')?.value.trim();
+
+    if (!name || !gov || !address) {
+      alert('يرجى إكمال بيانات إنشاء الحساب');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password, governorate: gov, address })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم إنشاء الحساب بنجاح!');
+        closeUserAuthModal();
+      } else {
+        alert(data.message || 'حدث خطأ أثناء إنشاء الحساب');
+      }
+    } catch (err) {
+      alert('تعذر الاتصال بالسيرفر');
+    }
+  } else {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم تسجيل الدخول بنجاح!');
+        closeUserAuthModal();
+      } else {
+        alert(data.message || 'بيانات الدخول غير صحيحة');
+      }
+    } catch (err) {
+      alert('تعذر الاتصال بالسيرفر');
+    }
+  }
+}
