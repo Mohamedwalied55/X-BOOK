@@ -5,7 +5,7 @@ const money=n=>Number(n||0).toLocaleString('ar-EG',{maximumFractionDigits:0});
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400)}
 function saveCart(){localStorage.xbookCart=JSON.stringify(state.cart)}
 function loadCart(){try{state.cart=JSON.parse(localStorage.xbookCart||'[]')}catch{state.cart=[]}}
-async function load(){const r=await fetch('/api/public');if(!r.ok)throw Error('تعذر تحميل البيانات');state=Object.assign(state,await r.json(),{filters:state.filters});applySettings();buildFilters();renderBooks();renderTeachers();renderCart();renderWhatsApp()}
+async function load(){const r=await fetch('/api/public');if(!r.ok)throw Error('تعذر تحميل البيانات');state=Object.assign(state,await r.json(),{filters:state.filters});applySettings();buildFilters();renderBooks();renderTeachers();renderCart();renderWhatsApp();checkUserState()}
 function applySettings(){const s=state.settings||{};$('#heroBadge').textContent=s.hero_badge||'CLASSIFIED // XBOOK';$('#heroTitle').innerHTML=(s.hero_title||'رحلتك نحو الثانوية العامة').replace(/(الثانوية العامة|تبدأ من هنا\.?)/,'<em>$1</em>');$('#heroSubtitle').textContent=s.hero_subtitle||'كتبك .. مع أفضل الشروحات من أقوى المدرسين';$('#aboutText').textContent=s.about||'';if(s.hero_image){$('#heroArt').style.backgroundImage=`url('${s.hero_image}')`}}
 function buildFilters(){const subs=[...new Set(state.books.map(b=>b.subject).filter(Boolean))].sort();$('#subject').innerHTML='<option value="">جميع المواد</option>'+subs.map(x=>`<option>${esc(x)}</option>`).join('');$('#teacher').innerHTML='<option value="">جميع المدرسين</option>'+state.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}
 function filtered(){const f=state.filters,q=f.q.trim().toLowerCase();return state.books.filter(b=>(!q||[b.title,b.subject,b.grade,b.teacher].join(' ').toLowerCase().includes(q))&&(!f.grade||b.grade===f.grade)&&(!f.subject||b.subject===f.subject)&&(!f.teacher||String(b.teacher_id)===String(f.teacher))&&(!f.available||b.available))}
@@ -18,23 +18,66 @@ function renderCart(){let total=0,count=0;$('#cart').innerHTML=state.cart.map(x=
 function openCart(){ $('#drawer').classList.add('open') } function closeCart(){ $('#drawer').classList.remove('open') }
 function renderWhatsApp(){const nums=[state.settings.whatsapp1,state.settings.whatsapp2].filter(x=>x&&x.length>5);$('#waLinks').innerHTML=nums.map((n,i)=>`<a href="https://wa.me/${encodeURIComponent(n)}" target="_blank" rel="noopener">واتساب ${i+1}<span>↗</span></a>`).join('');$('#floatingWa').onclick=()=>nums.length===1?window.open('https://wa.me/'+encodeURIComponent(nums[0]),'_blank'):toast('اختر رقم الواتساب من قسم التواصل بالأسفل')}
 function syncFilters(){state.filters.q=$('#search').value||$('#sideSearch').value;state.filters.grade=$('#grade').value;state.filters.subject=$('#subject').value;state.filters.teacher=$('#teacher').value;state.filters.available=$('#availableOnly').checked;$('#sideSearch').value=$('#search').value;renderBooks()}
-$('#search').addEventListener('input',()=>{state.filters.q=$('#search').value;$('#sideSearch').value=$('#search').value;renderBooks()});$('#sideSearch').addEventListener('input',()=>{state.filters.q=$('#sideSearch').value;$('#search').value=$('#sideSearch').value;renderBooks()});['grade','subject','teacher','availableOnly'].forEach(id=>$('#'+id).addEventListener('change',syncFilters));$('#applyFilters').onclick=syncFilters;$('#clearFilters').onclick=()=>{$('#search').value='';$('#sideSearch').value='';$('#grade').value='';$('#subject').value='';$('#teacher').value='';$('#availableOnly').checked=false;syncFilters()};$('#viewAll').onclick=()=>{$('#clearFilters').click()};$$('.categoryCard').forEach(c=>c.onclick=()=>{$('#grade').value=c.dataset.grade;state.filters.grade=c.dataset.grade;document.querySelector('#books').scrollIntoView({behavior:'smooth'});renderBooks()});$('#cartBtn').onclick=openCart;$('#overlay').onclick=closeCart;$('#closeCart').onclick=closeCart;$('#checkoutBtn').onclick=()=>{if(!state.cart.length)return toast('أضف كتاباً إلى السلة أولاً');closeCart();$('#orderModal').classList.add('open')};$('#closeModal').onclick=()=>$('#orderModal').classList.remove('open');$('#orderModal').onclick=e=>{if(e.target.id==='orderModal')$('#orderModal').classList.remove('open')};$('#orderForm').onsubmit=async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(e.target));body.items=state.cart;try{const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error);state.cart=[];saveCart();renderCart();e.target.reset();$('#orderModal').classList.remove('open');toast('تم إرسال الطلب رقم #'+d.order_id)}catch(err){toast(err.message)}};
+$('#search').addEventListener('input',()=>{state.filters.q=$('#search').value;$('#sideSearch').value=$('#search').value;renderBooks()});$('#sideSearch').addEventListener('input',()=>{state.filters.q=$('#sideSearch').value;$('#search').value=$('#sideSearch').value;renderBooks()});['grade','subject','teacher','availableOnly'].forEach(id=>$('#'+id).addEventListener('change',syncFilters));$('#applyFilters').onclick=syncFilters;$('#clearFilters').onclick=()=>{$('#search').value='';$('#sideSearch').value='';$('#grade').value='';$('#subject').value='';$('#teacher').value='';$('#availableOnly').checked=false;syncFilters()};$('#viewAll').onclick=()=>{$('#clearFilters').click()};$$('.categoryCard').forEach(c=>c.onclick=()=>{$('#grade').value=c.dataset.grade;state.filters.grade=c.dataset.grade;document.querySelector('#books').scrollIntoView({behavior:'smooth'});renderBooks()});$('#cartBtn').onclick=openCart;$('#overlay').onclick=closeCart;$('#closeCart').onclick=closeCart;
+$('#checkoutBtn').onclick=()=>{
+  if(!state.cart.length)return toast('أضف كتاباً إلى السلة أولاً');
+  closeCart();
+  const user = JSON.parse(localStorage.xbookUser || 'null');
+  if (user) {
+    const form = $('#orderForm');
+    if (form) {
+      if (form.customer_name) form.customer_name.value = user.name || '';
+      if (form.phone) form.phone.value = user.phone || '';
+      if (form.governorate) form.governorate.value = user.governorate || '';
+      if (form.address) form.address.value = user.address || '';
+    }
+  }
+  $('#orderModal').classList.add('open');
+};
+$('#closeModal').onclick=()=>$('#orderModal').classList.remove('open');$('#orderModal').onclick=e=>{if(e.target.id==='orderModal')$('#orderModal').classList.remove('open')};
+$('#orderForm').onsubmit=async e=>{
+  e.preventDefault();
+  const body=Object.fromEntries(new FormData(e.target));
+  body.items=state.cart;
+  const user = JSON.parse(localStorage.xbookUser || 'null');
+  if (user && user.id) body.user_id = user.id;
+  try{
+    const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok)throw Error(d.error);
+    state.cart=[];saveCart();renderCart();e.target.reset();$('#orderModal').classList.remove('open');
+    toast('تم إرسال الطلب رقم #'+d.order_id);
+    if(d.whatsapp_link) window.open(d.whatsapp_link, '_blank');
+  }catch(err){toast(err.message)}
+};
 $('#theme').onclick=()=>{document.body.classList.toggle('dark');localStorage.xbookDark=document.body.classList.contains('dark')?'1':'0'};if(localStorage.xbookDark==='1')document.body.classList.add('dark');loadCart();load().catch(e=>toast(e.message));
+
 // --- إدارة نافذة تسجيل الدخول وحساب الطالب ---
 let isRegisterMode = false;
 
+function checkUserState() {
+  const btn = document.getElementById('userAuthBtn');
+  const user = JSON.parse(localStorage.xbookUser || 'null');
+  if (btn && user) {
+    btn.textContent = `حسابي (${user.name.split(' ')[0]})`;
+    btn.onclick = () => {
+      if (confirm(`مرحباً ${user.name}\nهل ترغب في تسجيل الخروج؟`)) {
+        localStorage.removeItem('xbookToken');
+        localStorage.removeItem('xbookUser');
+        location.reload();
+      }
+    };
+  }
+}
+
 function openUserAuthModal() {
   const modal = document.getElementById('userAuthModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  }
+  if (modal) modal.style.display = 'flex';
 }
 
 function closeUserAuthModal() {
   const modal = document.getElementById('userAuthModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
+  if (modal) modal.style.display = 'none';
 }
 
 function toggleAuthMode(event) {
@@ -47,15 +90,15 @@ function toggleAuthMode(event) {
   const toggleLink = document.getElementById('toggleAuthMode');
 
   if (isRegisterMode) {
-    title.textContent = 'إنشاء حساب جديد';
-    regFields.style.display = 'block';
-    submitBtn.textContent = 'إنشاء الحساب';
-    toggleLink.textContent = 'لديك حساب بالفعل؟ تسجيل الدخول';
+    if (title) title.textContent = 'إنشاء حساب جديد';
+    if (regFields) regFields.style.display = 'block';
+    if (submitBtn) submitBtn.textContent = 'إنشاء الحساب';
+    if (toggleLink) toggleLink.textContent = 'لديك حساب بالفعل؟ تسجيل الدخول';
   } else {
-    title.textContent = 'تسجيل الدخول';
-    regFields.style.display = 'none';
-    submitBtn.textContent = 'دخول';
-    toggleLink.textContent = 'ليس لديك حساب؟ أنشئ حساب جديد';
+    if (title) title.textContent = 'تسجيل الدخول';
+    if (regFields) regFields.style.display = 'none';
+    if (submitBtn) submitBtn.textContent = 'دخول';
+    if (toggleLink) toggleLink.textContent = 'ليس لديك حساب؟ أنشئ حساب جديد';
   }
 }
 
@@ -64,52 +107,46 @@ async function handleUserAuth() {
   const password = document.getElementById('authPass')?.value.trim();
 
   if (!phone || !password) {
-    alert('يرجى ملء جميع الحقول المطلوبة');
+    toast('يرجى ملء جميع الحقول المطلوبة');
     return;
   }
 
+  const endpoint = isRegisterMode ? '/api/user/register' : '/api/user/login';
+  let payload = { phone, password };
+
   if (isRegisterMode) {
     const name = document.getElementById('regName')?.value.trim();
-    const gov = document.getElementById('regGov')?.value.trim();
+    const governorate = document.getElementById('regGov')?.value.trim();
     const address = document.getElementById('regAddress')?.value.trim();
 
-    if (!name || !gov || !address) {
-      alert('يرجى إكمال بيانات إنشاء الحساب');
+    if (!name || !governorate || !address) {
+      toast('يرجى إكمال جميع البيانات المطلوبة');
       return;
     }
+    payload = { name, phone, password, governorate, address };
+  }
 
-    try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, password, governorate: gov, address })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('تم إنشاء الحساب بنجاح!');
-        closeUserAuthModal();
-      } else {
-        alert(data.message || 'حدث خطأ أثناء إنشاء الحساب');
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok) {
+      toast(isRegisterMode ? 'تم إنشاء الحساب بنجاح!' : 'تم تسجيل الدخول بنجاح!');
+      if (data.token) {
+        localStorage.setItem('xbookToken', data.token);
+        localStorage.setItem('xbookUser', JSON.stringify(data.user));
       }
-    } catch (err) {
-      alert('تعذر الاتصال بالسيرفر');
+      closeUserAuthModal();
+      checkUserState();
+    } else {
+      toast(data.error || 'حدث خطأ في العملية');
     }
-  } else {
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('تم تسجيل الدخول بنجاح!');
-        closeUserAuthModal();
-      } else {
-        alert(data.message || 'بيانات الدخول غير صحيحة');
-      }
-    } catch (err) {
-      alert('تعذر الاتصال بالسيرفر');
-    }
+  } catch (err) {
+    toast('تعذر الاتصال بالسيرفر');
   }
 }
