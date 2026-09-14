@@ -13,6 +13,7 @@
   <a class="brand" href="#home"><span class="brandMark">X</span><span><b>XBOOK</b><small>BOOKS ARE YOUR MISSION</small></span></a>
   <div class="topSearch"><span>⌕</span><input id="search" placeholder="ابحث عن كتاب، مدرس، أو مادة..." autocomplete="off"></div>
   <nav><a class="active" href="#home">الرئيسية</a><a href="#books">الكتب</a><a href="#teachers">المدرسين</a><a href="#categories">التصنيفات</a><a href="#about">عن XBOOK</a></nav>
+  <button class="iconBtn" id="userAuthBtn" onclick="openUserAuthModal()" style="font-size:12px; font-weight:bold; padding:0 8px;">دخول / حساب جديد</button>
   <button class="iconBtn" id="theme" title="الوضع الليلي">☾</button>
   <button class="cartIcon" id="cartBtn" title="السلة">🛒<b id="cartCount">0</b></button>
 </header>
@@ -64,5 +65,23 @@
 <button class="floatingWa" id="floatingWa">◉</button>
 <div class="drawer" id="drawer"><div class="overlay" id="overlay"></div><aside class="cartDrawer"><button class="close" id="closeCart">×</button><span class="eyebrow">MISSION CART</span><h2>ملف المهمة</h2><div id="cart"></div><div class="cartTotal"><span>الإجمالي</span><b><span id="total">0</span> ج.م</b></div><button class="btn primary full" id="checkoutBtn">إرسال الطلب</button></aside></div>
 <div class="modal" id="orderModal"><div class="modalBox"><button class="close" id="closeModal">×</button><span class="eyebrow">ORDER FORM / ENCRYPTED</span><h2>بيانات المهمة</h2><p class="muted">اكتب بيانات الاستلام وسنتواصل معك لتأكيد الطلب.</p><form id="orderForm"><input name="customer_name" placeholder="الاسم بالكامل" required><input name="phone" placeholder="رقم الهاتف / واتساب" required><select name="governorate" required><option value="">اختر المحافظة</option><option>الغربية</option><option>الدقهلية</option><option>القاهرة</option><option>الجيزة</option><option>الإسكندرية</option><option>الشرقية</option><option>البحيرة</option><option>أخرى</option></select><textarea name="address" placeholder="العنوان بالتفصيل" required></textarea><textarea name="notes" placeholder="ملاحظات (اختياري)"></textarea><button class="btn primary full">تأكيد إرسال الطلب</button></form></div></div>
+<div id="userAuthModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
+  <div class="modalBox" style="max-width:400px; text-align:right;">
+    <button class="close" onclick="closeUserAuthModal()">×</button>
+    <span class="eyebrow">STUDENT ACCESS</span>
+    <h2 id="authTitle" style="margin-bottom:15px; color:var(--primary,#10b981);">تسجيل الدخول</h2>
+    <div id="registerFields" style="display:none;">
+      <input type="text" id="regName" placeholder="الاسم بالكامل" style="width:100%; margin-bottom:10px; padding:10px; background:#0b0f17; border:1px solid #1e293b; color:#fff; border-radius:6px;">
+      <input type="text" id="regGov" placeholder="المحافظة" style="width:100%; margin-bottom:10px; padding:10px; background:#0b0f17; border:1px solid #1e293b; color:#fff; border-radius:6px;">
+      <input type="text" id="regAddress" placeholder="العنوان التفصيلي" style="width:100%; margin-bottom:10px; padding:10px; background:#0b0f17; border:1px solid #1e293b; color:#fff; border-radius:6px;">
+    </div>
+    <input type="tel" id="authPhone" placeholder="رقم الهاتف (01xxxxxxxxx)" style="width:100%; margin-bottom:10px; padding:10px; background:#0b0f17; border:1px solid #1e293b; color:#fff; border-radius:6px;">
+    <input type="password" id="authPass" placeholder="كلمة المرور" style="width:100%; margin-bottom:15px; padding:10px; background:#0b0f17; border:1px solid #1e293b; color:#fff; border-radius:6px;">
+    <button id="authSubmitBtn" class="btn primary full" onclick="handleUserAuth()">دخول</button>
+    <div style="margin-top:15px; text-align:center; font-size:13px;">
+      <a href="#" id="toggleAuthMode" onclick="toggleAuthMode(event)" style="color:var(--primary,#10b981); text-decoration:none;">ليس لديك حساب؟ أنشئ حساب جديد</a>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div><script src="/script.js"></script>
 </body></html>
